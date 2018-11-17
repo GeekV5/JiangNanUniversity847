@@ -12,6 +12,7 @@ int main() {
         case 201801:JU201801();
         case 201802:JU201802();
         case 201803:JU201803();
+        case 201804:JU201804();
 //        default:printf("无当前所选题库\n");
     }
 
@@ -168,3 +169,27 @@ int JU201803()
 }
 
 //JU201803 End
+
+//JU201804 Start
+double Average(int start)
+{
+    double result = 0.0;
+    int count = 0;
+    for (int i = 0; i < start + 10; ++i) {
+        if(i >= 9){
+            ++count;
+            result += i;
+        }
+    }
+    result = result/count;
+    return result;
+}
+int JU201804()
+{
+    int tmp = 6;//6 7 8 9 10 11 12 13 14 15
+    double result = Average(tmp);
+    printf("大于9的部分累计求平均数结果为：%.f",result);
+    return 0;
+}
+
+//JU201804 End
