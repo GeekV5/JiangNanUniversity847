@@ -1,0 +1,1604 @@
+                        天勤高分笔记
+                        第二章 线性表
+线性表的结构体定义 P24
+
+#define maxSize 100 //这里定义一个整型常量maxSize,值为100
+1.顺序表的结构体定义
+typedef struct
+{
+	int data[maxSize]; //存放顺序表元素的数组（默认是int型，可根据题目要求将int型换成其他类型）
+	int length;//存放顺序表的长度
+}Sqlist;
+
+顺序表的各种基本运算：
+P26 【例2-1】已知一个顺序表L，其中的元素递增有序排列，设计一个算法，插入一个元素x（x为int型）后保持该顺序表仍然递增有序排列（假设插入操作总能成功）。
+#include <stdio.h>
+#include <stdlib.h>
+#define maxSize 100 //这里定义一个整型常量maxSize,值为100
+typedef struct
+{
+	int data[maxSize]; //存放顺序表元素的数组（默认是int型，可根据题目要求将int型换成其他类型）
+	int length;//存放顺序表的长度
+}Sqlist;
+
+//返回第一个比x大的元素的位置
+int findElem(Sqlist L,int x)
+{
+	int i;
+	for (int i = 0; i < L.length; ++i)
+	{
+		if (x < L.data[i])//对顺序表中的元素从小到大逐个进行判断，看x是否小于当前所扫描到的元素，如果小于则返回当前位置i
+		{
+			return i;
+		}
+	}
+	return i;//如果顺序表中不存在比x大的元素，则应将x插入表尾元素之后，返回i来标记这种情况（因i<L.length这一句不成立而退出for循环后，i正好指示了表尾元素之后位置，同样也是正确的插入位置）
+}
+
+void insertElem(Sqlist &L,int x)//因为L本身要发生改变，所以要用引用型
+{
+	int p,i;
+	p = findElem(L,x);//调用函数findElem()来找到插入位置p
+	for (i = L.length-1; i >= p; --i)
+	{
+		L.data[i+1] = L.data[i];//从右往左，逐个将元素右移一个位置
+	}
+	L.data[p] = x;//将x放在插入位置p上
+	++(L.length);//表内元素多了一个，因此表长自增1
+}
+
+int main(int argc, char const *argv[])
+{
+	insertElem(Sqlist &L,8);
+	return 0;
+}
+
+Summary:该例题体现了考研中顺序表算法部分要求掌握的以下两个知识点：
+（1）按元素值得查找算法
+在顺序表中查找第一个值等于e的元素，并返回其下标，代码如下：
+int findElem(Sqlist L,int e)
+{
+	int i;
+	for (int i = 0; i < L.length; ++i)
+	{
+		if (e == L.data[i])
+		{
+			return i; //若找到，则返回下标
+		}
+	}
+	return -1;//没找大，返回-1，作为失败标记
+}
+（2）插入数据元素的算法
+在顺序表L的第p（0<= p <= length）个位置上插入新的元素e。
+如果p的输入不正确，则返回0，代表插入失败；
+如果p的输入正确，则将顺序表第p个元素及以后元素右移一个位置，腾出一个空位置插入新元素，顺序表长度增加1，插入操作成功，返回1。
+插入操作代码如下：
+int insertElem(Sqlist &L,int p,int e) //L本身要发生改变，所以用引用型
+{
+	if (p < 0 || p > L.length || L.length == maxSize) //位置错误或者表长已经达到顺序表的最大允许值，此时插入不成功，返回0
+	{
+		return 0;
+	}
+	for (int i = L.length-1; i >= p; --i)
+	{
+		L.data[i+1] = L.data[i];//从后往前，逐个将元素往后移动一个位置
+	}
+	L.data[p] = e;//将e放在插入位置p上
+	++(L.length);//表内元素多了一个，因此表长自增1
+	return 1; //插入成功返回1
+}
+
+P28 【例2-2】删除顺序表中下标为p（0 <= p <= length-1）的元素，成功返回1，否则返回0，并将被删除元素的值赋给e
+#include <stdio.h>
+#include <stdlib.h>
+#define maxSize 100 //这里定义一个整型常量maxSize,值为100
+typedef struct
+{
+	int data[maxSize]; //存放顺序表元素的数组（默认是int型，可根据题目要求将int型换成其他类型）
+	int length;//存放顺序表的长度
+}Sqlist;
+
+int deleteElem(Sqlist &L,int p,int &e)//需要改变的变量用引用型
+{
+	if (p < 0 || p > L.length - 1)
+	{
+		return 0;//位置不对返回0，代表删除不成功
+	}
+	e = L.data[p];//将被删除元素复制给e
+	for (int i = p; i < L.length - 1; ++i)//从p位置开始，将其后边的元素逐个前移一个位置
+	{
+		L.data[i] = L.data[i+1];
+	}
+	--(L.length);//表长减1
+	return 1;//删除成功，返回1
+}
+
+
+2.单链表结点定义
+typedef struct LNode
+{
+	int data;//data中存放结点数据域（默认是int型）
+	struct LNode *next;//指向后继结点的指针
+}LNode;//定义单链表结点类型
+
+单链表的操作
+P29 【例2-3】A和B是两个单链表（带头结点），其中元素递增有序。设计一个算法，将A和B归并成一个按元素值非递减有序的链表C，C由A和B中的结点组成。
+解：
+typedef struct LNode
+{
+	int data;//data中存放结点数据域（默认是int型）
+	struct LNode *next;//指向后继结点的指针
+}LNode;//定义单链表结点类型
+
+void merge(LNode *A,LNode *B,LNode *&C)
+{
+	LNode *p = A->next; //p来跟踪A的最小值结点
+	LNode *q = B->next; //q来跟踪B的最小值结点
+	LNode *r; //r始终指向C的终端结点
+	C = A; //用A的头结点来做C的头结点
+	C->next = NULL;//表示从A链表中取下头结点作为新链表的头
+	free(B);//B的头结点已无用，则释放掉
+	r = C;//r指向C，因为此时头结点也是终端结点
+	while(p != NULL && q != NULL)//当p与q都不为空时，选取p与q所指结点中的较小者插入C的尾部
+	{
+		/*以下的if else语句中，r始终指向当前链表的终端结点，作为接纳新结点的一个媒介，通过它，新结点被链接入C并且重新指向新的终端结点。以便于接收下一个新结点，这里体现了建立链表的尾插法思想*/
+		if (p->data <= q->data)
+		{
+			r->next = p;
+			p = p->next;
+
+			r = r->next;
+		}
+		else
+		{
+			r->next = q;
+			q = q->next;
+
+			r = r->next;
+		}
+	}
+
+	r->next = NULL;//这一句其实可以去掉，因为下面两个if语句必须有一个执行
+	//以下两个if语句将还有剩余结点的链表链接在C的尾部
+	if (p != NULL)
+	{
+		r->next = p;
+	}
+	if (q != NULL)
+	{
+		r->next = q;
+	}
+}
+
+Summary：
+①用尾插法建立单链表:
+假设有n个元素已经存储在数组a中，用尾插法建立链表C：
+void createlistR(LNode *&C,int a[],int n)
+{
+	LNode *s,*r; //s用来指向新申请的结点，r始终指向C的终端结点
+	int i;
+	C = (LNode *)malloc(sizeof(LNode)); //申请C的头结点空间
+	C->next = NULL;
+	r = C;    //r指向头结点，因为此时头结点就是终端结点
+	for (int i = 0; i < n; ++i) //循环申请n个结点来接收数组a中的元素
+	{
+		s = (LNode*)malloc(sizeof(LNode)); //s指向新申请的结点
+		s->data = a[i]; //用新申请的结点来接收a中的一个元素
+		r->next = s;    //用r来接纳新结点
+		r = r->next;    //r指向终端结点，以便于接纳下一个到来的结点
+	}
+	r->next = NULL; //数组a中所有元素都已经装入链表C中，C的终端结点的指针域置为NULL，C建立完成
+}
+②用头插法建立单链表
+void createlistF(LNode *&C,int a[],int n)
+{
+	LNode *s;
+	C = (LNode*)malloc(sizeof(LNode));
+	C->next = NULL;
+	for (int i = 0; i < n; ++i)
+	{
+		s = (LNode*)malloc(sizeof(LNode));
+		s->data = a[i];
+
+		s->next = C->next; //s所指新结点的指针域next指向C中的开始结点
+		C->next = s;       //头结点的指针域next指向s结点，使得s成为新的开始结点
+
+	}
+}
+
+P31 【例2-3 改编】A和B是两个单链表（带头结点），其中元素递增有序。设计一个算法，将A和B归并成一个按元素值递减有序的链表C，C由A和B中的结点组成。
+解：
+typedef struct LNode
+{
+	int data;//data中存放结点数据域（默认是int型）
+	struct LNode *next;//指向后继结点的指针
+}LNode;//定义单链表结点类型
+
+void merge(LNode *A,LNode *B,LNode *&C)
+{
+	LNode *p = A->next;
+	LNode *q = B->next;
+	LNode *s;
+	C = A;
+	C->next = NULL;
+	free(B);
+	while(p != NULL && q != NULL)
+	{
+		/*下边的if else语句体现了链表的头插法*/
+		if (p->data <= q->data)
+		{
+			s = p;
+			p = p->next;
+			s->next = C->next;
+			C->next = s;
+		}
+		else
+		{
+			s = q;
+			q = q->next;
+			s->next = C->next;
+			C->next = s;
+		}
+	}
+	/*下边这两个循环是和求递增归并序列不同的地方，必须将剩余元素逐个插入C的头部才能得到最终的递减序列*/
+	while(p != NULL)
+	{
+		s = p;
+		p = p->next;
+		s->next = C->next;
+		C->next = s;
+	}
+	while(q != NULL)
+	{
+		s = q;
+		q = q->next;
+		s->next = C->next;
+		C->next = s;
+	}
+}
+
+单链表的删除操作：
+P32 【例2-4】查找链表C（带头结点）中是否存在一个值为x的结点，若存在，则删除该结点并返回1，否则返回0。
+解：
+typedef struct LNode
+{
+	int data;//data中存放结点数据域（默认是int型）
+	struct LNode *next;//指向后继结点的指针
+}LNode;//定义单链表结点类型
+
+ int findAndDelete(LNode *C,int x)
+ {
+ 	LNode *p,*q;
+ 	p = C;
+ 	/*查找部分开始*/
+ 	while(p->next != NULL)
+ 	{
+ 		if (p->next->data == x)
+ 		{
+ 			break;
+ 		}
+ 		p = p->next;
+ 	}
+ 	/*查找部分结束*/
+ 	if (p->next == NULL)
+ 	{
+ 		return 0;
+ 	}
+ 	else
+ 	{
+ 		/*删除部分开始*/
+ 		q = p->next;
+ 		p->next = p->next->next;
+ 		free(q);
+ 		/*删除部分结束*/
+ 		return 1;
+ 	}
+ }
+
+
+
+3.双链表结点的定义
+typedef struct DLNode
+{
+	int data;//data中存放结点数据域（默认是int型）
+	struct DLNode *prior;//指向前驱结点的指针
+	struct DLNode *next;//指向后继结点的指针
+}DLNode;//定义双链表结点的类型
+
+双链表的操作：
+①采用尾插法建立双链表
+void createDlistR(DLNode *&L,int a[],int n)
+{
+	DLNode *s,*r;
+	L = (DLNode*)malloc(sizeof(DLNode));
+	L->prior = NULL;
+	L->next  = NULL;
+	r = L; //和单链表一样，r始终指向终端结点，开始头结点也是尾结点
+	for (int i = 0; i < n; ++i)
+	{
+		s = (DLNode*)malloc(sizeof(DLNode)); //创建新结点
+		s->data = a[i];
+		/*下面3句将s插入到L的尾部，并且r指向s,s->prior = r;这一句是和建立单链表不同的地方*/
+		r->next = s;
+		s->prior = r;
+		r = s;
+	}
+	r->next = NULL;
+}
+②查找结点的算法
+在双链表中查找第一个值为x的结点，从第一个结点开始，边扫描边比较，若找到这样的结点，则返回结点指针，否则返回NULL。代码如下：
+DLNode* findNode(DLNode *C,int x)
+{
+	DLNode *p = C->next;
+	while(p != NULL)
+	{
+		if (p->data == x)
+		{
+			break;
+		}
+		p = p->next;
+	}
+	return p;/*如果找到，则p中内容是结点地址（循环因break结束）；如果没找到，则p中内容是NULL（循环因p等于NULL而结束）。因此这一句可以将题干中要求的两种返回值的情况统一起来*/
+}
+③插入结点的算法：
+假设在双链表中p所指的结点之后插入一个结点s,其操作语句如下：
+s->next = p->next;
+s->prior = p;
+p->next = s;
+s->next->prior = s;//假如p指向最后一个结点，则本行可去掉
+④删除结点的算法：
+设要删除双链表中p结点的后继结点，其操作语句如下：
+q = p->next;
+p->next = q->next;
+q->next->prior = p;
+free(q);
+
+                         第三章 栈和队列
+#define maxSize 100
+顺序栈定义
+typedef struct
+{
+	int data[maxSize]; //存放栈中元素，maxSize是已定义的常量
+	int top;   //栈顶指针
+}SqStack;//顺序栈类型定义
+
+链栈结点定义
+typedef struct LNode
+{
+	int data; //数据域
+	struct LNode *next; //指针域
+}LNode;  //链栈结点定义
+
+顺序队列定义
+typedef struct
+{
+	int data[maxSize];
+	int front; //队首指针
+	int rear; //队尾指针
+}SqQueue;  //顺序队类型定义
+
+链队定义
+（1）队结点类型定义
+typedef struct QNode
+{
+	int data; //数据域
+	struct QNode *next; //指针域
+}QNode; //队结点类型定义
+
+（2）链队类型定义
+typedef struct
+{
+	QNode *front;//队头指针
+	QNode *rear;//队尾指针
+}LiQueue;//链队类型定义
+
+顺序栈
+初始化栈的代码：
+void initStack(SqStack &st)//初始化栈
+{
+	st.top = -1;//只需将栈顶指针设置为-1
+}
+判断栈空代码：
+int isEmpty(SqStack st)
+{
+	if (st.top == -1)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+进栈代码：
+int push(SqStack &st,int x)
+{
+	if (st.top == maxSize - 1) //【注意】栈满不能进栈
+	{
+		return 0;
+	}
+	++(st.top);//先移动指针，再进栈
+	st.data[st.top] = x;
+	return 1;
+}
+出栈代码：
+int pop(SqStack &st,int &x)
+{
+	if (st.top == -1)//【注意】如果栈空，则不能出栈
+	{
+		return 0;
+	}
+	x = st.data[st.top];//先取出元素再移动指针
+	--(st.top);
+	return 1;
+}
+
+链栈：
+typedef struct LNode
+{
+	int data; //数据域
+	struct LNode *next; //指针域
+}LNode;  //链栈结点定义
+链栈初始化：
+void initStack(LNode *&lst) //lst要改变，用引用型
+{
+	lst = (LNode*)malloc(sizeof(LNode));//制造一个头结点
+	lst->next = NULL;
+}
+判断链栈空的代码：
+int isEmpty(LNode *lst) //判断是否为空
+{
+	if (lst->next == NULL)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+链栈 进栈代码：
+void push(LNode *lst, int x)
+{
+	LNode *p;
+	p = (LNode*)malloc(sizeof(LNode));//为进栈元素申请结点空间
+	p->next = NULL;/*虽然在此函数中此句不写也正确，但是每当申请新结点的时候，将其指针域设置为NULL是可以避免一些错误的好习惯*/
+
+	/*以下3句就是链表的头插法*/
+	p->data = x;
+	p->next = lst->next;
+	lst->next = p;
+}
+链栈 出栈代码：
+int pop(LNode *lst,int &x)//需要改变的变量要用引用型
+{
+	LNode *p;
+	if (lst->next == NULL)//栈空则不能出栈，返回0
+	{
+		return 0;
+	}
+	/*以下是单链表的删除操作*/
+	p = lst->next;
+	x = p->data;
+	lst->next = p->next;
+	free(p);
+	return 1;
+}
+
+顺序队之循环队列：
+typedef struct
+{
+	int data[maxSize];
+	int front; //队首指针
+	int rear; //队尾指针
+}SqQueue;  //顺序队类型定义
+初始化循环队列算法：
+void initQueue(SqQueue &qu)
+{
+	qu.front = qu.rear = 0；//队首和队尾指针重合，并且指向0
+}
+判断循环队列是否为空：
+int isQueueEmpty(SqQueue qu)
+{
+	if (qu.front == qu.rear)//不论队首、队尾指向数组中的哪个位置
+	{
+		return 1;//只要两者重合，即为队空
+	}
+	else
+	{
+		return 0;
+	}
+}
+#define maxSize 100
+循环队列 进队算法：
+int enQueue(SqQueue &qu,int x)
+{
+	if ((qu.rear + 1)%maxSize == qu.front)//队满的判断条件，队满则不能入队
+	{
+		return 0;
+	}
+	qu.rear = (qu.rear + 1)%maxSize; //若队未满，则先移动指针
+	qu.data[qu.rear] = x; //再存入元素
+	return 1;
+}
+循环队列 出队算法：
+int deQueue(SqQueue &qu,int &x)
+{
+	if (qu.front == qu.rear)//若队空，则不能出队
+	{
+		return 0;
+	}
+	qu.front = (qu.front + 1)%maxSize;//若队不为空，则先移动指针
+	x = qu.data[qu.front];  //再取出元素
+	return 1;
+}
+
+                        第四章 串
+#define maxSize 100;
+定长顺序存储结构：
+typedef struct
+{
+	char str[maxSize + 1];
+	/*maxSize为已经定义的常量，表示串的最大长度；
+	  str数组长度定义为maxSize+1，是因为多出一个'\0'作为结束标记*/
+	int length;
+}Str;
+变长分配存储表示（动态分配存储表示）：
+typedef struct
+{
+	char *ch;//指向动态分配存储区首地址的字符指针
+	int length;//串长度
+}Str;
+
+串的基本操作：
+（1）赋值操作：
+typedef struct
+{
+	char *ch;//指向动态分配存储区首地址的字符指针
+	int length;//串长度
+}Str;
+
+int strassign(Str &str,char *ch)
+{
+	if (str.ch)
+	{
+		free(str.ch); //释放原串空间
+	}
+	int len = 0;
+	char *c = ch;
+	while(*c) //求ch串的长度
+	{
+		++len;
+		++c;
+	}
+	if (len == 0)//如果ch为空串，则直接返回空串
+	{
+		str.ch = NULL;
+		str.length = 0;
+		return 1;
+	}
+	else
+	{
+		str.ch = (char*)malloc(sizeof(char) * (len + 1));
+		//取len+1 是为了多分配一个空间存放“\0”字符
+		if (str.ch == NULL)
+		{
+			return 0;
+		}
+		else
+		{
+			c = ch;
+			for (int i = 0; i <= len; ++i,++c)
+			{
+				str.ch[i] = *c;
+				/*【注意】循环条件中之所以用“<=”，是为了将ch最后的‘\0’复制到新串中作为结束标记*/
+				str.length = len;
+				return 1;
+			}
+		}
+	}
+}
+（2）取串长度操作：
+typedef struct
+{
+	char *ch;//指向动态分配存储区首地址的字符指针
+	int length;//串长度
+}Str;
+
+int strlength(Str str)
+{
+	return str.length;
+}
+（3）串比较操作：
+typedef struct
+{
+	char *ch;//指向动态分配存储区首地址的字符指针
+	int length;//串长度
+}Str;
+
+int strcompare()
+{
+	for (int i = 0; i < s1.length && i <s2.length; ++i)
+	{
+		if (s1.ch[i] != s2.ch[i])
+		{
+			return s1.ch[i] - s2.ch[i];
+		}
+	}
+	return s1.length - s2.length;
+}
+（4）串连接操作：
+typedef struct
+{
+	char *ch;//指向动态分配存储区首地址的字符指针
+	int length;//串长度
+}Str;
+
+int concat(Str &str,Str str1,Str str2)
+{
+	if (str.ch)
+	{
+		free(str.ch);//释放原串空间
+		str.ch = NULL;
+	}
+	str.ch = (char*)malloc(sizeof(char)*(str1.length + str2.length +1));
+	if (str.ch == NULL)
+	{
+		return 0;
+	}
+	int i = 0;
+	while(i < str1.length)
+	{
+		str.ch[i] = str1.ch[i];
+		++i;
+	}
+	int j = 0;
+	while(j <= str2.length)
+	//【注意】之所以用“<=”是为了连同str2.ch最后的'\0'一起复制
+	{
+		str.ch[i + j] = str2.ch[j];
+		++j;
+	}
+	str.length = str1.length + str2.length;
+	return 1;
+}
+
+（5）求子串操作：
+typedef struct
+{
+	char *ch;//指向动态分配存储区首地址的字符指针
+	int length;//串长度
+}Str;
+
+int substring(Str &substr,Str str,int pos,int len)
+{
+	if (pos < 0 || pos >= str.length || len < 0 ||len > str.length - pos) //程序异常抛出
+	{
+		return 0;
+	}
+	if (substr.ch) //声明的新子串在内存中存在时，格式化该串
+	{
+		free(substr.ch);
+		substr.ch = NULL;
+	}
+	if (len == 0)//如果要截取的子串长度为0，则直接将子串的ch赋值为NULL，将长度length赋值为0，直接返回
+	{
+		substr.ch = NULL;
+		substr.length =0;
+		return 1;
+	}
+	else//当截取的子串长度不为0且截取的位置合法时进行截取字符串的操作
+	{
+		substr.ch = (char*)malloc(sizeof(char)*len + 1);//跟系统索取新的内存空间存储子串中的ch字符串数据
+		int i = pos;//起始位置
+		int j = 0;
+		while(i < pos + len)
+		{
+			substr.ch[j] = str.ch[i];
+			++i;
+			++j;
+		}
+		substr.ch[j] = '\0';
+		substr.length = len;
+		return 1;
+	}
+}
+
+（6）串清空操作：
+typedef struct
+{
+	char *ch;//指向动态分配存储区首地址的字符指针
+	int length;//串长度
+}Str;
+int clearstring(Str &str)
+{
+	if (tr.ch)
+	{
+		free(str.ch);
+		str.ch = NULL;
+	}
+	str.length = 0;
+	return 1;
+}
+
+                        第五章 数组和广义表
+数组的顺序存储表示和实现：
+#define m 4
+#define n 5
+int A[m][n];
+
+稀疏矩阵的三元组存储结构：
+typedef struct
+{
+	int val; //如果考试中要求使用其他类型，则将int替换为题目要求的类型（例如char,float）
+	int i,j; //行下标，列下标
+};
+
+广义表的存储结构：
+（1）广义表的头尾链表存储表示
+typedef enum{
+	ATOM,LIST            //ATOM==0:原子，LIST==1:子表
+}ElemTag;
+typedef struct GLNode
+{
+	ElemTag tag;         //公共部分，用于区分原子结点和表结点
+	union{               //原子结点和表结点的联合部分
+		AtomType atom;   //atom是原子结点的值域，AtomType由用户定义
+		struct
+		{
+			struct GLNode * hp,*tp;
+		}ptr;            //ptr是表结点的指针域，ptr.hp和ptr.tp分别指向表头和表尾
+	};
+} *GList;                //广义表类型
+（2）广义表的拓展线性链表存储表示
+typedef enum{
+	ATOM,LIST //ATOM==0:原子，LIST==1:子表
+}ElemTag;
+typedef struct GLNode
+{
+	ElemTag tag;           //公共部分，用于区分原子结点和表结点
+	union{                 //原子结点和表结点的联合部分
+		AtomType atom;     //原子结点的值域
+		struct GLNode *hp; //表结点的表头指针
+	};
+	struct GLNode *tp;     //相当于线性链表的next，指向下一个元素结点
+} *GList;                  //广义表类型GList是一种扩展的线性链表
+
+
+                        第六章 树
+1.二叉树的存储结构：
+typedef struct BTNode
+{
+	char data;//这里默认结点data域为char型，如果题目中需要其他类型，则只需要修改此处；
+	struct BTNode *lchild;
+	struct BTNode *rchild;
+}BTNode;
+
+（1）递归遍历
+①先序遍历：
+void PreOrder(BTNode *p)
+{
+	if (p != null)
+	{
+		Visit(p);//假设访问函数Visit()已经定义过，其中包含了对结点p的各种访问操作，如可以打印出p对应的数值
+		PreOrder(p->lchild);//先序遍历左子树
+		PreOrder(p->rchild);//先序遍历右子树
+	}
+}
+
+②中序遍历：
+void InOrder(BTNode *p)
+{
+	if (p != null)
+	{
+		InOrder(p->lchild);//中序遍历左子树
+		Visit(p);//假设访问函数Visit()已经定义过，其中包含了对结点p的各种访问操作，如可以打印出p对应的数值
+		InOrder(p->rchild);//中序遍历右子树
+	}
+}
+
+③后序遍历：
+void PostOrder(BTNode *p)
+{
+	if (p != null)
+	{
+		PostOrder(p->lchild);//后序遍历左子树
+		PostOrder(p->rchild);//后序遍历右子树
+		Visit(p);//假设访问函数Visit()已经定义过，其中包含了对结点p的各种访问操作，如可以打印出p对应的数值
+	}
+}
+
+题型：求二叉树的深度
+P140【例6-2】写一个算法求一棵二叉树的深度，二叉树以二叉链表为存储方式。
+解：
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct BTNode
+{
+	char data;//这里默认结点data域为char型，如果题目中需要其他类型，则只需要修改此处；
+	struct BTNode *lchild;
+	struct BTNode *rchild;
+}BTNode;
+
+int getDepth(BTNode *p)
+{
+	int LD,RD;
+	if (p == NULL)
+	{
+		return 0; //如果树是空树，则返回0（定义空树的深度为0）
+	}
+	else
+	{
+		LD = getDepth(p->lchild);//求左子树深度
+		RD = getDepth(p->rchild);//求右子树深度
+		return (LD>RD?LD:RD) + 1;//返回左、右子树深度的最大值加1，即求整棵树的深度
+	}
+}
+
+题型：在二叉树中查找值
+P140【例6-3】在一棵以二叉链表为存储结构的二叉树中，查找data域值等于key的结点是否存在（找到任何一个满足要求的结点即可），如果存在，则将q指向该结点，否则q赋值为NULL，假设data为int型。
+解：
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct BTNode
+{
+	char data;//这里默认结点data域为char型，如果题目中需要其他类型，则只需要修改此处；
+	struct BTNode *lchild;
+	struct BTNode *rchild;
+}BTNode;
+
+/*假设二叉树已经存在且p指向其根结点*/
+void search(BTNode *p, BTNode *&q, int key)//[注意]要将参数q定义为引用型指针，因为q要改变
+{
+	if (p != NULL) //如果树为空树，则什么都不做，q保持NULL值
+	{
+		if (p->data == key) //如果p所指结点的data域值等于key，则将p赋值给q，即q指向域值等于key的结点；
+	    {                   //如果p所指结点的data域值不等于key，则分别到左、右子树中查找
+			q = p;
+		}
+		else
+		{
+			search(p->lchild,q,key); //左子树查找
+			if (q == NULL)  //在左子树中没找到才到右子树中查找
+			{
+				search(p->rchild,q,key);
+			}
+		}
+	}
+}
+
+【例6-4】假设二叉树采用二叉链表存储结构存储，编写一个程序，输出先序遍历序列中第k个结点的值，假设k不大于总的结点数。（结点data域类型为char型）
+解：使用先序遍历
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct BTNode
+{
+	char data;//这里默认结点data域为char型，如果题目中需要其他类型，则只需要修改此处；
+	struct BTNode *lchild;
+	struct BTNode *rchild;
+}BTNode;
+
+int n = 0; //定义全局变量n，将结点计数初值设为0
+void trave(BTNode *p,int k)
+{
+	if (p != NULL)
+	{
+		++n; //当第一次来到一个结点的时候进行计数，表示这是第n个结点；
+		if (k == n)//当第一次来到一个结点的时候进行判断，看这个结点是不是先序序列中的第k个结点
+		{
+			cout<<p->data<<endl;//如果是，则输出
+			return; //并且无需继续遍历，用return直接返回
+		}
+		trave(p->lchild,k);
+		trave(p->rchild,k);
+	}
+}
+
+解：使用中序遍历
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct BTNode
+{
+	char data;//这里默认结点data域为char型，如果题目中需要其他类型，则只需要修改此处；
+	struct BTNode *lchild;
+	struct BTNode *rchild;
+}BTNode;
+
+int n = 0; //定义全局变量n，将结点计数初值设为0
+void trave(BTNode *p,int k)
+{
+	if (p != NULL)
+	{
+		trave(p->lchild,k);
+		++n; //当第一次来到一个结点的时候进行计数，表示这是第n个结点；
+		if (k == n)//当第一次来到一个结点的时候进行判断，看这个结点是不是先序序列中的第k个结点
+		{
+			cout<<p->data<<endl;//如果是，则输出
+			return; //并且无需继续遍历，用return直接返回
+		}
+		trave(p->rchild,k);
+	}
+}
+
+解：使用后序遍历
+#include <stdio.h>
+#include <stdlib.h>
+typedef struct BTNode
+{
+	char data;//这里默认结点data域为char型，如果题目中需要其他类型，则只需要修改此处；
+	struct BTNode *lchild;
+	struct BTNode *rchild;
+}BTNode;
+
+int n = 0; //定义全局变量n，将结点计数初值设为0
+void trave(BTNode *p,int k)
+{
+	if (p != NULL)
+	{
+		trave(p->lchild,k);
+		trave(p->rchild,k);
+		++n; //当第一次来到一个结点的时候进行计数，表示这是第n个结点；
+		if (k == n)//当第一次来到一个结点的时候进行判断，看这个结点是不是先序序列中的第k个结点
+		{
+			cout<<p->data<<endl;//如果是，则输出
+			return; //并且无需继续遍历，用return直接返回
+		}
+	}
+}
+
+题型：层次遍历
+#include <stdio.h>
+#include <stdlib.h>
+#define maxSize 100 //这里定义一个整型常量maxSize,值为100
+typedef struct BTNode
+{
+	char data;//这里默认结点data域为char型，如果题目中需要其他类型，则只需要修改此处；
+	struct BTNode *lchild;
+	struct BTNode *rchild;
+}BTNode;
+
+void level(BTNode *p)
+{
+	int front,rear;
+	BTNode *que[maxSize];//定义一个循环队列，用来记录将要访问的层次上的结点
+	front = rear = 0;
+	BTNode *q;
+	if (p != NULL)
+	{
+		rear = (rear + 1) % maxSize;
+		que[rear] = p; //根结点入队
+		while(front != rear) //当队列不为空的时候进行循环
+		{
+			front = (front + 1) % maxSize;
+			q = que[front]; //队头结点出队
+			Visit(q);    //访问头结点
+			if (q->lchild != NULL) //如果左子树不空，则左子树的根结点入队
+			{
+				rear = (rear + 1) % maxSize;
+				que[rear] = q->lchild;
+			}
+			if (q->rchild != NULL) //如果右子树不空，则右子树的根结点
+			{
+				rear = (rear + 1) % maxSize;
+				que[rear] = q->rchild;
+			}
+		}
+	}
+}
+
+题型：求二叉树的宽度
+P144【例6-5】假设二叉树采用二叉链表存储结构存储，设计一个算法，求出该二叉树的宽度（具有结点数最多的那一层上的结点个数）
+解：
+#include <stdio.h>
+#include <stdlib.h>
+#define maxSize 100 //这里定义一个整型常量maxSize,值为100
+typedef struct BTNode
+{
+	char data;//这里默认结点data域为char型，如果题目中需要其他类型，则只需要修改此处；
+	struct BTNode *lchild;
+	struct BTNode *rchild;
+}BTNode;
+/*下面所定义的这个结构型为顺序非循环队列的队列元素，可以存储结点指针以及结点所在的层次号*/
+typedef struct
+{
+	BTNode *p; //结点指针
+	int lno;   //结点所在层次号
+}St;
+
+int maxNode(BTNode *b)
+{
+	St que[maxSize];
+	int front,rear; //定义顺序非循环队列
+	int Lno,n,max;
+	front = rear = 0; //将队列置空
+	BTNode *q;
+	if (b != NULL)
+	{
+		++rear;
+		que[rear].p = b; //树根入队
+		que[rear].lno = 1; //树根所在层次好设置为1，此为已知条件
+		while(front != rear)
+		{
+			++front;
+			q = que[front].p;
+			Lno = que[front].lno; //关键语句：Lno用来存取当前结点的层次号
+			if (q->lchild != NULL)
+			{
+				++rear;
+				que[rear].p = q->lchild;
+				que[rear].lno = Lno + 1; //关键语句：根据当前结点的层次号推知其孩子结点的层次号
+			}
+			if (q->rchild != NULL)
+			{
+				++rear;
+				que[rear].p = q->rchild;
+				que[rear].lno = Lno + 1;//关键语句：根据当前结点的层次号推知其孩子结点的层次号
+			}
+		}//[注意]循环结束的时候，Lno中保存的是这棵二叉树的最大层数
+
+		/*以下代码找出了含有结点最多的层中的结点数*/
+		max = 0
+		for (int i = 0; i <=Lno; ++i)
+		{
+			n = 0;
+			for (int j = 0; j <=rear; ++i)
+			{
+				if (que[j].lno == i)
+				{
+					++n;
+				}
+				if (max < n)
+				{
+					max = n;
+				}
+			}
+			return max;
+		}
+		else
+		{
+			return 0; //
+		}
+	}
+}
+
+先序遍历非递归算法：
+#include <stdio.h>
+#include <stdlib.h>
+#define maxSize 100 //这里定义一个整型常量maxSize,值为100
+typedef struct BTNode
+{
+	char data;//这里默认结点data域为char型，如果题目中需要其他类型，则只需要修改此处；
+	struct BTNode *lchild;
+	struct BTNode *rchild;
+}BTNode;
+
+void preorderNonrecursion(BTNode *bt)
+{
+	if (bt != NULL)
+	{
+		BTNode *Stack[maxSize];//定义一个栈
+		int top = -1;//初始化栈
+		BTNode *p;
+		Stack[++top] = bt;//根结点入栈
+		while(top != -1)//栈空循环退出，遍历结束
+		{
+			p = Stack[top--]; //出栈并输出栈顶结点
+			Visit(p); //Visit为访问p的函数
+			if (p->rchild != NULL) //栈顶结点的右孩子存在，则右孩子入栈
+			{
+				Stack[++top] = p->rchild;
+			}
+			if (p->lchild != NULL) //栈顶结点的左孩子存在，则左孩子入栈
+			{
+				Stack[++top] = p->lchild;
+			}
+		}
+	}
+}
+
+中序遍历非递归算法：
+#include <stdio.h>
+#include <stdlib.h>
+#define maxSize 100 //这里定义一个整型常量maxSize,值为100
+typedef struct BTNode
+{
+	char data;//这里默认结点data域为char型，如果题目中需要其他类型，则只需要修改此处；
+	struct BTNode *lchild;
+	struct BTNode *rchild;
+}BTNode;
+
+void inorderNonrecursion(BTNode *bt)
+{
+	if (bt != NULL)
+	{
+		BTNode *Stack[maxSize];//定义一个栈
+		int top = -1;//初始化栈
+		BTNode *p;
+		p = bt;//根结点入栈
+		/*下面这个循环完成中序遍历，注意：会出现栈空状态，这时遍历还没有结束，因根结点的右子树还没有遍历，此时p非空，根据这一点来维持循环的进行*/
+		while(top != -1 || p!= NULL)
+		{
+			while(p != NULL) //左孩子存在，则左孩子入栈
+			{
+				Stack[++top] = p;
+				p = p->lchild;
+			}
+			if (top != -1)//在栈不空的情况下出栈并输出出栈结点
+			{
+				p = Stack[top--];
+				Visit(p);//Visit是访问p的函数，在这里执行打印结点值的操作
+				p = p->rchild;
+			}
+		}
+	}
+}
+
+后序遍历非递归算法：
+#include <stdio.h>
+#include <stdlib.h>
+#define maxSize 100 //这里定义一个整型常量maxSize,值为100
+typedef struct BTNode
+{
+	char data;//这里默认结点data域为char型，如果题目中需要其他类型，则只需要修改此处；
+	struct BTNode *lchild;
+	struct BTNode *rchild;
+}BTNode;
+
+void postorderNonrecursion(BTNode *bt)
+{
+	if (bt != NULL)
+	{
+		BTNode *Stack1[maxSize];
+		int top1 = -1;
+		BTNode *Stack2[maxSize];
+		int top2 = -1;
+		BTNode *p = NULL;
+		Stack1[++top1] = bt;
+		while(top1 != -1 )
+		{
+			p = Stack1[top1--];
+			Stack2[++top2] = p;//注意这里和先序遍历的区别，输出改为如Stack2
+			/*注意：下边两个if语句和先序遍历的区别，左、右孩子的入栈顺序相反*/
+			if (p->lchild != NULL)
+			{
+				Stack1[++top1] = p->lchild;
+			}
+			if (p->rchild != NULL)
+			{
+				Stack1[++top1] = p->rchild;
+			}
+		}
+		while(top2 != -1 )
+		{
+			/*出栈序列即为后序遍历序列*/
+			p = Stack2[top2--];
+			Visit(p);//Visit是访问p的函数，在这里执行打印结点值的操作
+		}
+	}
+}
+
+2.线索二叉树的存储结构：
+typedef struct TBTNode
+{
+	char data;
+	int ltag,rtag;//线索标记
+	struct TBTNode *lchild;
+	struct TBTNode *rchild;
+}TBTNode;
+通过中序遍历对二叉树线索化的递归算法
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct TBTNode
+{
+	char data;
+	int ltag,rtag;//线索标记
+	struct TBTNode *lchild;
+	struct TBTNode *rchild;
+}TBTNode;
+
+void InThread(TBTNode *p,TBTNode *&pre)
+{
+	if (p != NULL)
+	{
+		InThread(p->lchild,pre); //递归，左子树线索化
+		if (p->lchild == NULL)
+		{//建立当前结点的前驱线索
+			p->lchild = pre;
+			p->ltag = 1;
+		}
+		if (pre != NULL && pre->rchild == NULL)
+		{//建立前驱结点的后继线索
+			pre->rchild = p;
+			pre->rtag = 1;
+		}
+		pre = p; //pre指向当前的p，作为p将要指向的下一个结点的前驱结点指示指针
+		//p = p->rchild;//p指向一个新结点，此时pre和p分别指向的结点形成了一个前驱后继对为下一次线索的连接做准备
+		InThread(p->rchild,pre);//递归，右子树线索化
+	}
+}
+
+通过中序遍历建立中序线索二叉树的主程序如下：
+void createInThread(TBTNode *root)
+{
+	TBTNode *pre = NULL; //前驱结点指针
+	if (root != NULL)
+	{
+		InThread(root,pre);
+		pre->rchild = NULL; //非空二叉树，线索化
+		pre->rtag = 1;//后处理中序最后一个结点
+	}
+}
+
+遍历中序线索二叉树
+TBTNode *First(TBTNode *p) //中序序列下的第一个结点的算法
+{
+	while(p->ltag == 0)
+	{
+		p = p->lchild; //最左下结点（不一定是叶子结点）
+	}
+	return p;
+}
+
+TBTNode *Next(TBTNode *p) //p在中序下的后继结点的算法
+{
+	if (p->rtag == 0)
+	{
+		return First(p->rchild);
+	}
+	else
+	{
+		return p->rchild;//rtag == 1，直接返回后继线索
+	}
+}
+
+void Inorder(TBTNode *root)//中序遍历中序线索二叉树
+{
+	for (TBTNode *p = First(root);p != NULL;p = Next(p))
+	{
+		Visit(p); //Visit()是已经定义的访问p所指结点的函数
+	}
+}
+
+前序线索化二叉树：
+void preThread(TBTNode *p,TBTNode *&pre)
+{
+	if (p != NULL)
+	{
+		if (p->lchild == NULL)
+		{
+			p->lchild = pre;
+			p->ltag = 1;
+		}
+		if (pre != NULL && pre->rchild == NULL)
+		{
+			pre->rchild = p;
+			pre->rtag = 1;
+		}
+		pre = p;
+		/*【注意】这里在递归入口处有限制条件，左右指针不是线索才继续递归*/
+		if (p->ltag == 0)
+		{
+			preThread(p->lchild,pre);
+		}
+		if (p->rtag == 0)
+		{
+			preThread(p->rchild,pre);
+		}
+	}
+}
+前序遍历前序线索二叉树：
+void preorder(TBTNode *root)
+{
+	if (root != NULL)
+	{
+		TBTNode *p = root;
+		while(p != NULL)
+		{
+			while(p->ltag == 0 )//左指针不是线索，则边访问边左移
+			{
+				Visit(p);
+				p = p->lchild;
+			}
+			Visit(p);//此时p左指针必为线索，但是还没被访问，则访问
+			p = p->rchild;//此时p左孩子不存在，则右指针若非空，则不论是否为线索都指向其后继
+		}
+	}
+}
+
+后序线索二叉树：
+void postThread(TBTNode *p,TBTNode *&pre)
+{
+	if (p != NULL)
+	{
+		postThread(p->lchild,pre);//递归，左子树线索化
+		postThread(p->rchild,pre);//递归，右子树线索化
+		if (p->lchild == NULL)
+		{     //建立当前结点的前驱线索
+			p->lchild = pre;
+			p->ltag = 1;
+		}
+		if (pre != NULL && pre->rchild == NULL)
+		{     //建立前驱结点的后继线索
+			pre->rchild = p;
+			pre->rtag = 1;
+		}
+		pre = p;
+	}
+}
+
+                                  第七章 图
+1.图的邻接矩阵的存储结构：
+typedef struct
+{
+	int no;//顶点编号
+	char info;//顶点其他信息，这里默认是char型，这一句在一般题目中很少用到，因此题目不做特殊要求的话可以不写
+}VertexType;
+
+
+typedef struct  //图的定义
+{
+	int edges[maxSize][maxSize];
+	//邻接矩阵定义，如果是有权图，则在此句中将int改为float
+	int n,e; //分别为顶点数和边数
+	VertexType vex[maxSize];//存放结点信息
+}MGraph; //图的邻接矩阵类型
+
+
+2.邻接表的存储结构：
+typedef struct ArcNode
+{
+	int adjvex; //该边所指向的结点的位置
+	struct ArcNode *nextarc;//指向下一条边的指针
+	int info;//该边的相关信息（如权值），这一句用得不多，题目不做特殊要求可以不写
+}ArcNode;
+
+typedef struct
+{
+	char data;//顶点信息
+	ArcNode *firstarc;//指向第一条边的指针
+}VNode;
+
+typedef struct
+{
+    VNode adjlist[maxSize];//邻接表
+    int n,e;	//顶点数和边数
+}AGraph;
+
+3.图的深度优先遍历算法（以邻接表为存储结构）
+
+#define maxSize 100
+typedef struct ArcNode
+{
+	int adjvex; //该边所指向的结点的位置
+	struct ArcNode *nextarc;//指向下一条边的指针
+	int info;//该边的相关信息（如权值），这一句用得不多，题目不做特殊要求可以不写
+}ArcNode;
+
+typedef struct
+{
+	char data;//顶点信息
+	ArcNode *firstarc;//指向第一条边的指针
+}VNode;
+
+typedef struct
+{
+    VNode adjlist[maxSize];//邻接表
+    int n,e;	//顶点数和边数
+}AGraph;
+
+int visit[maxSize];
+/*v是起点编号，visit[]是一个全局数组，作为顶点的访问标记，初始时所有元素均为0，表示所有顶点都未被访问。
+因图中可能存在回路，当前经过的顶点在将来还可能再次经过，所有要对每个顶点进行标记，以免重复访问。*/
+void DFS(AGraph *G,int v)
+{
+	ArcNode *p;
+	visit[v] = 1; //置已访问标记
+	Visit(v); //函数Visit()代表了一类访问顶点v的操作
+	p = G->adjlist[v].firstarc;//p指向顶点v的第一条边
+	while(p != NULL)
+	{
+		if (visit[p->adjvex] == 0) //若顶点未访问，则递归访问它
+		{
+			DFS(G,p->adjvex);
+			p = p->nextarc;//p指向顶点v的下一条边的终点
+		}
+	}
+}
+
+4.图的广度优先遍历算法：
+#define maxSize 100
+typedef struct ArcNode
+{
+	int adjvex; //该边所指向的结点的位置
+	struct ArcNode *nextarc;//指向下一条边的指针
+	int info;//该边的相关信息（如权值），这一句用得不多，题目不做特殊要求可以不写
+}ArcNode;
+
+typedef struct
+{
+	char data;//顶点信息
+	ArcNode *firstarc;//指向第一条边的指针
+}VNode;
+
+typedef struct
+{
+    VNode adjlist[maxSize];//邻接表
+    int n,e;	//顶点数和边数
+}AGraph;
+
+void BFS()
+{
+	ArcNode *p;
+	int que[maxSize],front = 0,rear = 0; //这是队列定义的简单写法
+	int j;
+	Visit(v); //任意访问顶点v的函数
+	visit[v] = 1;
+	rear = (rear + 1) % maxSize;  //当前顶点v进队
+	que[rear] = v;
+	while(front != rear) //队空的时候说明遍历完成
+	{
+		front = (front + 1)%maxSize;//顶点出队
+		j = que[front];
+		p = G->adjlist[j].firstarc;//p指向出队顶点j的第一条边
+		while(p != NULL) //将p的所有邻接点中未被访问的入队
+		{
+			if (visit[p->adjvex] == 0)//当前邻接顶点未被访问，则进队
+			{
+				Visit(p->adjvex);
+				visit[p->adjvex] = 1;
+				rear = (rear + 1) % maxSize; //该顶点进队
+				que[rear] = p->adjvex;
+			}
+			p = p->nextarc; //p指向j的下一条边
+		}
+	}
+}
+
+程序中调用深度优先遍历和广度优先遍历：
+（1）深度优先搜索遍历
+void dfs(AGraph *g)
+{
+	for (int i = 0; i < g->n; ++i)
+	{
+		if (visit[i] == 0)
+		{
+			DFS(g,i);
+		}
+	}
+}
+
+(2)广度优先搜索遍历
+void bfs(AGraph *g)
+{
+	for (int i = 0; i < g->n; ++i)
+	{
+		if (visit[i] == 0)
+		{
+			BFS(g,i,visit);
+		}
+	}
+}
+
+                  第八章 查找
+顺序查找算法：
+Demo:数组a[]中有n个整数，没有次序，数组从下标1开始存储，请写出查找任一元素k的算法，若查找成功，则返回元素在数组中的位置；若查找不成功，则返回0。计算其平均查找长度及算法的时间复杂度。
+解：
+#include <stdlib.h>
+#include <stdio.h>
+int Search(int a[],int n,int k)
+{
+	for (int i = 0; i <= n; ++i)
+	{
+		if (a[i] == k)
+		{
+			return i;
+		}
+	}
+	return 0;
+}
+
+折半查找算法：
+#include <stdlib.h>
+#include <stdio.h>
+int Bsearch(int R[],int low,int high,int k)
+{
+	int mid;
+	while(low <= high) //当子表长度大于等于1时进行循环
+	{
+		mid = (low + high)/2; //取当前表的中间位置
+		if (R[mid] == k)      //找到后返回元素的位置
+		{
+			return mid;
+		}
+		else if(R[mid] > k)   //说明需要在R[low,...,mid-1]中查找
+		{
+			high = mid - 1;
+		}
+		else                  //说明需要在R[mid+1,...,high]中查找
+		{
+			low = mid -1;
+		}
+	}
+	return 0;                 //查找不成功则返回0，数组R[]从下标1开始存
+	                          //查找失败返回0
+}
+
+分块查找：又称“索引顺序查找”
+索引表定义：
+typedef struct
+{
+	int key;      //假设表内元素为int型
+	int low,high; //记录某块中第一个和最后一个元素的位置
+}indexElem;
+
+二叉排序树
+  存储结构（二叉链表）
+typedef struct BTNode
+{
+    int key; //这里将data改为key，代表关键字
+ 	struct BTNode *lchild;
+ 	struct BTNode *rchild;
+}BTNode;
+
+二叉排序树的基本算法
+【1】查找关键字的算法
+BTNode* BSTSearch(BTNode* bt,int key)
+{
+	if (bt == NULL)
+	{
+		return NULL;//来到了空指针域，查找不成功则返回NULL
+	}
+	else
+	{
+		if (bt->key == key)
+		{
+			return bt; //等于根结点中的关键字，查找成功，返回关键字所在的结点指针
+		}
+		else if(key < bt->key)   //小于根结点中的关键字时到左子树中查找
+		{
+			return BSTSearch(bt->lchild,key);
+		}
+		else               //大于根结点的关键字的时候到右子树中查找
+		{
+			return BSTSearch(bt->rchild,key);
+		}
+	}
+}
+
+【2】插入关键字的算法
+int BSTInsert(BTNode *&bt,int key)//再次强调，因为指针bt要改变，所以要用引用型指针
+{
+	if (bt == NULL)//当前为空指针时说明找到插入位置，创建新结点进行插入
+	{
+		bt = (BTNode*)malloc(sizeof(BTNode));//创建新结点
+		bt->lchild = bt->rchild = NULL;
+		bt->key = key;//将待插入关键字存入新结点内，插入成功，返回1
+		return 1;
+	}
+	else //如果不为空，则查找插入位置，这部分和查找算法类似
+	{
+		if (key == bt->key)//关键字已存在于树中，插入失败，返回0
+		{
+			return 0;
+		}
+		else if (key < bt->key)
+		{
+			return BSTInsert(bt->lchild,key);
+		}
+		else
+		{
+			return BSTInsert(bt->rchild,key);
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
