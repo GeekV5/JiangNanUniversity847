@@ -18,7 +18,7 @@ int main() {
         case 201805:JU201805();
         case 201806:JU201806();
         case 201807:JU201807();
-        //case 201808:JU201808();
+        case 201808:JU201808();
 //        default:printf("无当前所选题库\n");
     }
 
@@ -382,5 +382,57 @@ int JU201807()
 {
     char a[] = "abeld";
     CalcAllPermutation(a,0,4);
+    return 0;
+}
+
+//JU201807 End
+
+//JU201808
+#define MAX 1000
+typedef struct GraphNode
+{
+    int Row;
+    int Column;
+}GraphNode;
+
+struct GraphNode nodes[1000];
+
+void GetNearsetNode(GraphNode node,int matrix[5][7])
+{
+    int m = 5,n = 7;
+    int cur = 0;
+    GraphNode sub;
+    //考察上边界
+    if((node.Row - 1) >= 0)
+    {
+        sub.Row = node.Row - 1;
+        sub.Column = node.Column;
+        nodes[cur++] = sub;
+    }
+    //考察下边界
+    if((node.Row + 1) <= m)
+    {
+        sub.Row = node.Row + 1;
+        sub.Column = node.Column;
+        nodes[cur++] = sub;
+    }
+    //考察左边界
+    if((node.Column-1) <=0 )
+    {
+        sub.Row = node.Row;
+        sub.Column = node.Column - 1;
+        nodes[cur++] = sub;
+    }
+    //考察右边界
+    if((node.Column + 1) <= n)
+    {
+        sub.Row = node.Row;
+        sub.Column = node.Column + 1;
+        nodes[cur++] = sub;
+    }
+}
+
+int JU201808()
+{
     return 0;
 }
