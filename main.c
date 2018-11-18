@@ -17,6 +17,8 @@ int main() {
         case 201804:JU201804();
         case 201805:JU201805();
         case 201806:JU201806();
+        case 201807:JU201807();
+        //case 201808:JU201808();
 //        default:printf("无当前所选题库\n");
     }
 
@@ -292,4 +294,93 @@ int JU201806()
 }
 //JU201806 End
 
+//JU201807 Start
+void swap(char *a,char *b)
+{
+    char temp;
+    temp = *a;
+    *a = *b;
+    *b = temp;
+}
 
+void reverse(char *s,int i,int n)
+{
+    int temp = 0;
+    while(n > i)
+    {
+        printf("i=%d,n-1=%d",i,n-1);
+        temp = s[i];
+        s[i] = s[n];
+        s[n] = temp;
+        i++;
+        n--;
+    }
+}
+
+//用来判断是否可以打印，0：不能打印，1可以打印
+int IsPrint(char *perm,int to)
+{
+    //1.如果首字母或尾字母时元音字母则不打印
+    //2.如果有连续两个元音字母则同样不打印
+    char first = perm[0];
+    char end = perm[to];
+    if(first == 'a' || first == 'e' || first == 'i' || first == 'o' || first == 'u'
+    || first == 'a' || first == 'e' || first == 'i' || first == 'o' || first == 'u')
+    {
+        return  0;
+    }
+    int flag = 0;
+    for (int i = 0; i < to; ++i) {
+        char tmp = perm[i];
+        if(tmp == 'a' || tmp == 'e' || tmp == 'i' || tmp == 'o' || tmp == 'u')
+        {
+            if(flag == 1)
+            {
+                return 0;//连续出差两次元音返回0，不可以打印
+            }
+            else
+            {
+                flag = 1;
+            }
+        }
+        else
+        {
+            flag = 0;
+        }
+    }
+    return  0;
+}
+
+void CalcAllPermutation(char *perm,int from,int to)
+{
+    if(to <= 1)
+    {
+        return;
+    }
+    if(from == to)
+    {
+        int flag = IsPrint(perm,to);
+        if(flag == 1)
+        {
+            for (int i = 0; i < to; ++i) {
+                printf("%c",perm[i]);
+            }
+            printf("\n");
+        }
+    } else
+    {
+        for (int j = 0; j <= to; ++j) {
+            swap(&perm[j],&perm[from]);//首先交换二者的值
+            char  temp;
+            CalcAllPermutation(perm,from+1,to);//继续递归排列剩下的
+            swap(&perm[j],&perm[from]);//继续换回来进行下一步交换
+        }
+    }
+}
+
+int JU201807()
+{
+    char a[] = "abeld";
+    CalcAllPermutation(a,0,4);
+    return 0;
+}
