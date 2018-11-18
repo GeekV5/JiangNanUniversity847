@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <mm_malloc.h>
+
 int main() {
     printf("--江南大学847计算机程序设计历年真题汇总---\n");
     printf("********请选择想要查看的年份+题号*******\n");
@@ -13,6 +15,8 @@ int main() {
         case 201802:JU201802();
         case 201803:JU201803();
         case 201804:JU201804();
+        case 201805:JU201805();
+        case 201806:JU201806();
 //        default:printf("无当前所选题库\n");
     }
 
@@ -193,3 +197,99 @@ int JU201804()
 }
 
 //JU201804 End
+
+//JU201805 Start
+typedef struct treenode
+{
+    int key;
+    struct treenode *left;
+    struct treenode *right;
+} Btree;
+
+//将节点插入到二叉排序树中
+void InsertBST(Btree *t,int key)
+{
+    if(t == NULL)
+    {
+        t = (Btree *)malloc(10000);
+        t->left = t->right = NULL;
+        t->key = key;
+        return;
+    }
+    if(key < t->key )
+    {
+        InsertBST(t->left,key);
+    } else{
+        InsertBST(t->right,key);
+    }
+}
+
+//在先序遍历树过程中，逐步二叉排序树
+void PreOrder(Btree *t,Btree *tBST)
+{
+    if(t != NULL)
+    {
+        InsertBST(tBST,t->key);
+        PreOrder(t->left,tBST);
+        PreOrder(t->right,tBST);
+    }
+}
+
+//将一个普通二叉树变为二叉排序树
+Btree *ToBinarySearchTree(Btree *root_node)
+{
+    Btree *bstTreeRoot = NULL;
+    PreOrder(root_node,bstTreeRoot);
+    return bstTreeRoot;
+}
+
+int JU201805()
+{
+    return 0;
+}
+
+//JU201805 End
+
+//JU201806 Start
+#define MAX_LENGTH 50
+
+//对两个向量进行排序，第一个向量按照降序，这样相乘最小
+void sort(int *array,int length)
+{
+    int m = 0,temp = 0;
+    for (int i = 0; i < length; ++i) {
+        m = i;
+        for (int j = m - 1; j >= 0 ; j--) {
+            if(array[j] > array[m])
+            {
+                break;
+            }
+            temp = array[j];
+            array[j] = array[m];
+            array[m] = temp;
+            m--;
+        }
+    }
+}
+
+int minMulti(int *array_a,int *array_b,int length)
+{
+    int result = 0;
+    sort(array_a,length);
+    sort(array_b,length);
+    for (int i = 0; i < length; ++i) {
+        result += array_a[i] * array_b[length - 1 -i];
+    }
+    return result;
+}
+
+int JU201806()
+{
+    int array_a[3] = {3,-1,7};
+    int array_b[3] = {-4,2,-3};
+    printf("两个%d维向量相乘的最小值为：%d\n",3,minMulti(array_a,array_b,3));
+    return 0;
+}
+//JU201806 End
+
+
